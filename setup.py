@@ -15,7 +15,8 @@ setuptools.setup(
         "opencv-contrib-python",
         "numpy",
         "imutils",
-        "requests",
+        "aiohttp",
+        "asyncio",
         "python-decouple"
     ],
     packages=setuptools.find_packages(),
