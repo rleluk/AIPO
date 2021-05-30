@@ -1,16 +1,14 @@
 from decouple import config
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 
 class UbidotsConfig(NamedTuple):
     url: str
     token: str
-    variable: str
 
 
 def load_ubidots_config() -> UbidotsConfig:
     return UbidotsConfig(
-        url=config('URL'),
-        token=config('TOKEN'),
-        variable=config('VARIABLE')
+        url=config('URL', None),
+        token=config('TOKEN', None),
     )

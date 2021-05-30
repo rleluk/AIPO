@@ -17,7 +17,8 @@ setuptools.setup(
         "imutils",
         "aiohttp",
         "asyncio",
-        "python-decouple"
+        "python-decouple",
+        "Pillow"
     ],
     packages=setuptools.find_packages(),
     python_requires=">=3.9",
