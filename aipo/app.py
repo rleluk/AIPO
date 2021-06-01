@@ -1,13 +1,16 @@
+import os
 import time
 import logging
+import asyncio
 import threading
 import tkinter as tk
-from typing import Optional
+from typing import Callable
 from PIL import Image, ImageTk
 from tkinter import Toplevel, filedialog as fd
 
-from .client import UbidotsClient, load_ubidots_config
 from .detector import PeopleDetector
+from .thread_event_loop import thread_loop
+from .client import UbidotsClient, load_ubidots_config
 
 
 logger = logging.getLogger(__name__)
@@ -22,14 +25,15 @@ class App:
         self._add_widgets()
 
     def _add_widgets(self) -> None:
-        self._root.minsize(200, 300)
+        self._root.minsize(300, 150)
         self._root.resizable(False, False)
         self._root.title("People detector")
+        self._root.eval('tk::PlaceWindow . center')
 
-        tk.Button(text='Process image', command=self._detect_in_image)\
-            .grid(column=0, row=0, pady=10)
-        tk.Button(text='Process video', command=self._detect_in_sequence)\
-            .grid(column=0, row=1, pady=10)
+        tk.Button(text='Process image', command=self._detect_in_image,
+                width=15, font='sans 16 bold').pack(pady=20)
+        tk.Button(text='Process video', command=self._detect_in_sequence, 
+                width=15, font='sans 16 bold').pack(pady=(0, 20))
 
     def _detect_in_image(self) -> None:
         path = fd.askopenfilename()
@@ -39,10 +43,16 @@ class App:
             
         image, count = self._people_detector.detect_in_image(path)
         if image is not None:
-            _, label = self._spawn_new_window_with_label()
+            label = self._spawn_new_window_with_label()
             image = ImageTk.PhotoImage(image=Image.fromarray(image))
-            label.image = image
             label.configure(image=image)
+            label.image = image
+
+            if self._ubidots_client is not None:
+                asyncio.run_coroutine_threadsafe(
+                    self._ubidots_client.send_request(os.path.basename(path), count), 
+                    thread_loop
+                )
 
     def _detect_in_sequence(self) -> None:
         path = fd.askopenfilename()
@@ -50,33 +60,48 @@ class App:
             logger.error("Sequence path is empty")
             return
 
-        sub_window, label = self._spawn_new_window_with_label()
-        video_sequence = self._people_detector.detect_in_sequence(path)
         stop_event = threading.Event()
-
+        label = self._spawn_new_window_with_label(on_close=stop_event.set)
+        video_sequence = self._people_detector.detect_in_sequence(path)
+        basename = os.path.basename(path)
+        
         def process_sequence():
+            start = time.time()
             while not stop_event.is_set():
                 image, count = next(video_sequence)
                 image = ImageTk.PhotoImage(image=Image.fromarray(image))
-                label.image = image
                 label.configure(image=image)
-            logger.info(f"Stopped processing video sequence {path}")
+                label.image = image
 
-        def on_close():
-            stop_event.set()
-            sub_window.destroy()
-        sub_window.protocol("WM_DELETE_WINDOW", on_close)
+                if self._ubidots_client is not None and time.time() - start > 1:
+                    start = time.time()
+                    asyncio.run_coroutine_threadsafe(
+                        self._ubidots_client.send_request(basename, count), 
+                        thread_loop
+                    )
 
         thread = threading.Thread(target=process_sequence)
+        thread.setDaemon(True)
         thread.start()
 
-    def _spawn_new_window_with_label(self):
+    def _spawn_new_window_with_label(self, on_close: Callable = None):
         sub_window = Toplevel(self._root)
         sub_window.title("Processed image")
+        sub_window.resizable(False, False)
         label = tk.Label(sub_window)
-        label.pack(side=tk.LEFT)
-        return sub_window, label
+        label.pack(expand=True)
 
-    async def cleanup(self) -> None:
+        def quit():
+            if on_close is not None:
+                on_close()
+            sub_window.quit()
+        sub_window.protocol("WM_DELETE_WINDOW", quit)
+        
+        return label
+
+    def cleanup(self):
         if self._ubidots_client is not None:
-            await self._ubidots_client.delete_session()
+            asyncio.run_coroutine_threadsafe(
+                self._ubidots_client.delete_session(), 
+                thread_loop
+            )

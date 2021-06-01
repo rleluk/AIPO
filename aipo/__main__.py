@@ -1,5 +1,4 @@
 import sys
-import asyncio
 import logging
 from tkinter import Tk
 from .app import App
@@ -12,18 +11,13 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-# ignore asyncio logs
-logging.getLogger('asyncio').setLevel(logging.ERROR)
 
-
-async def main() -> None:
+if __name__ == "__main__":
     try:
         root = Tk()
         app = App(root)
         root.mainloop()
-    finally:
-        await app.cleanup()
+    finally: 
+        app.cleanup()
+    
 
-
-if __name__ == "__main__":
-    asyncio.run(main())

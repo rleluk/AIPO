@@ -1,8 +1,8 @@
 import logging
 import aiohttp
-from typing import Tuple, Optional
+from typing import Tuple
 
-from .config import UbidotsConfig, load_ubidots_config
+from .config import UbidotsConfig
 
 
 logger = logging.getLogger(__name__)

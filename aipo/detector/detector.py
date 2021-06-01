@@ -35,7 +35,7 @@ class PeopleDetector:
         while True:
             _, frame = video.read()
             result, count = self._detect_people(frame)
-            logger.debug(f"Number of detected people in video {filename}: {count}")
+            logger.debug(f"Number of detected people in video '{filename}': {count}")
             yield result, count
             
     def detect_in_image(self, path: str) -> Tuple[np.array, int]:
@@ -45,7 +45,7 @@ class PeopleDetector:
 
         result, count = self._detect_people(image)
         filename = os.path.basename(path)    
-        logger.debug(f"Number of detected people in image {filename}: {count}")
+        logger.debug(f"Number of detected people in image '{filename}': {count}")
         return result, count
         
     def _detect_people(self, image: np.array) -> Tuple[np.array, int]:
