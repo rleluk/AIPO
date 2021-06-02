@@ -9,7 +9,7 @@
 python -m venv venv
 ```
 
-2. Activate created environment.  
+2. Activate created environment:
  * Powershell (Windows):
     ```bash 
     ./venv/Scripts/Activate.ps1
@@ -25,7 +25,13 @@ python -m venv venv
 pip install .
 ```
 
-4. Run the application:
+4. Add Ubidots account's token and API's URL to .env file or as an environmental variable (optional):
+```bash
+URL=YOUR_DEVICE_URL
+TOKEN=YOUR_TOKEN
+```
+
+5. Run the application:
 ```bash
 python -m aipo
 ```
