@@ -1,5 +1,5 @@
 from decouple import config
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 
 class UbidotsConfig(NamedTuple):

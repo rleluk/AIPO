@@ -7,6 +7,7 @@ import tkinter as tk
 from typing import Callable
 from PIL import Image, ImageTk
 from tkinter import Toplevel, filedialog as fd
+from concurrent.futures import ThreadPoolExecutor
 
 from .detector import PeopleDetector
 from .thread_event_loop import thread_loop
@@ -22,6 +23,7 @@ class App:
         self._root = root
         self._people_detector = PeopleDetector()
         self._ubidots_client = UbidotsClient.from_config(load_ubidots_config())
+        self._executor = ThreadPoolExecutor(max_workers=5)
         self._add_widgets()
 
     def _add_widgets(self) -> None:
@@ -80,9 +82,7 @@ class App:
                         thread_loop
                     )
 
-        thread = threading.Thread(target=process_sequence)
-        thread.setDaemon(True)
-        thread.start()
+        self._executor.submit(process_sequence)
 
     def _spawn_new_window_with_label(self, on_close: Callable = None):
         sub_window = Toplevel(self._root)
@@ -94,7 +94,7 @@ class App:
         def quit():
             if on_close is not None:
                 on_close()
-            sub_window.quit()
+            sub_window.destroy()
         sub_window.protocol("WM_DELETE_WINDOW", quit)
         
         return label
