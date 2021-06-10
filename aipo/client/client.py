@@ -22,7 +22,7 @@ class UbidotsClient:
         logger.debug("Creating aiohttp client's session")
         return self
 
-    async def send_request(self, variable:str, value: int) -> Tuple[dict, int]:
+    async def send_request(self, variable: str, value: int) -> Tuple[dict, int]:
         headers = {
             "X-Auth-Token": self._config.token, 
             "Content-Type": "application/json"

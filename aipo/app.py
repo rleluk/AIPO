@@ -52,7 +52,7 @@ class App:
 
             if self._ubidots_client is not None:
                 asyncio.run_coroutine_threadsafe(
-                    self._ubidots_client.send_request(os.path.basename(path), count), 
+                    self._ubidots_client.send_request('images', count), 
                     thread_loop
                 )
 

@@ -20,7 +20,6 @@ class PeopleDetector:
         def __str__(self) -> str:
             return f"Couldn't load {self._path}"
 
-
     def __init__(self, ):
         self._hogcv = cv2.HOGDescriptor()
         self._hogcv.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
@@ -59,6 +58,6 @@ class PeopleDetector:
         result = non_max_suppression(rects, probs=None, overlapThresh=0.65)
 
         for (x_1, y_1, x_2, y_2) in result:
-            cv2.rectangle(image, (x_1, y_1), (x_2, y_2), (0, 255, 0), 2)
+            cv2.rectangle(image, (x_1, y_1), (x_2, y_2), (255, 0, 255), 2)
         
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB), len(result)
